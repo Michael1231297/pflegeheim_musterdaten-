@@ -16,7 +16,7 @@ if uploaded_file:
         st.success("✅ Datei erfolgreich geladen!")
 
         # Vorschau
-        st.subheader("📋 Datenvorschau")
+        st.subheader("📋 Datenvorschau (anonymisiert)")
         st.dataframe(df)
 
         # Altersverteilung
