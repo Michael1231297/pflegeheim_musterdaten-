@@ -11,7 +11,7 @@ BRAND_ROT = "#e2001A"
 GRAU_DUNKEL = "#333333"
 
 # === Diagramm-Einstellungen (hier kannst du die Größe anpassen) ===
-DIAGRAMM_BREITE_INCHES = 5.0  # Breite der Diagramme in Inches (Standard: 5.0)
+DIAGRAMM_BREITE_INCHES = 4.0  # Breite der Diagramme in Inches (Standard: 5.0)
 
 
 def _make_bar_image(series: pd.Series, title: str, xlabel: str, ylabel: str = "Anzahl") -> BytesIO:
@@ -324,3 +324,4 @@ def build_word_report(df: pd.DataFrame) -> BytesIO:
     mem.seek(0)
     
     return mem
+
