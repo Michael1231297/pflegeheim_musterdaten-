@@ -11,7 +11,7 @@ BRAND_ROT = "#e2001A"
 GRAU_DUNKEL = "#333333"
 
 # === Diagramm-Einstellungen (hier kannst du die Größe anpassen) ===
-DIAGRAMM_BREITE_INCHES = 5.0  # Breite der Diagramme in Inches (Standard: 5.0)
+DIAGRAMM_BREITE_INCHES = 3.8  # Breite der Diagramme in Inches (Standard: 5.0)
 
 
 def _make_bar_image(series: pd.Series, title: str, xlabel: str, ylabel: str = "Anzahl") -> BytesIO:
@@ -212,7 +212,7 @@ def _analyze_abteilungen(df: pd.DataFrame) -> str:
     else:
         text += (
             f"Die Unterschiede in der Belegung sind mit einer Differenz von {diff_prozent:.1f} Prozentpunkten "
-            f"deutlich ausgeprägt. Dies sollte bei der Personalplanung berücksichtigt werden."
+            f"deutlich ausgeprägt."
         )
     
     return text
@@ -324,3 +324,6 @@ def build_word_report(df: pd.DataFrame) -> BytesIO:
     mem.seek(0)
     
     return mem
+
+
+
