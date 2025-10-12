@@ -1,425 +1,166 @@
-import streamlit as st
+from io import BytesIO
+from docx import Document
+from docx.shared import Inches, RGBColor, Pt
+from docx.enum.text import WD_ALIGN_PARAGRAPH
+import matplotlib.pyplot as plt
 import pandas as pd
-import altair as alt
-from report_export import build_word_report
-
-# === Konfiguration ===
-st.set_page_config(
-    page_title="Pflegeheim-Auswertung",
-    layout="wide",
-    initial_sidebar_state="collapsed"
-)
+import numpy as np
 
 # === Corporate Design ===
 BRAND_ROT = "#e2001A"
 GRAU_DUNKEL = "#333333"
-GRAU_MITTEL = "#666666"
-GRAU_HELL = "#f5f5f5"
 
-# === Custom CSS für Premium-Look ===
-st.markdown("""
-<style>
-    /* Haupttitel */
-    h1 {
-        color: #e2001A !important;
-        font-weight: 700 !important;
-        padding-bottom: 1rem !important;
-        border-bottom: 4px solid #e2001A !important;
-        margin-bottom: 2rem !important;
-    }
-    
-    /* Untertitel */
-    h2, h3 {
-        color: #333333 !important;
-        font-weight: 600 !important;
-        margin-top: 2rem !important;
-        margin-bottom: 1rem !important;
-    }
-    
-    /* Metriken-Cards verschönern */
-    [data-testid="stMetricValue"] {
-        font-size: 2rem !important;
-        font-weight: 700 !important;
-        color: #e2001A !important;
-    }
-    
-    [data-testid="stMetricLabel"] {
-        font-size: 1rem !important;
-        font-weight: 500 !important;
-        color: #333333 !important;
-    }
-    
-    /* File Uploader */
-    [data-testid="stFileUploader"] {
-        background-color: #f8f9fa;
-        border: 2px dashed #e2001A;
-        border-radius: 10px;
-        padding: 2rem;
-    }
-    
-    /* Buttons */
-    .stDownloadButton button {
-        background-color: #e2001A !important;
-        color: white !important;
-        border: none !important;
-        border-radius: 8px !important;
-        padding: 0.75rem 2rem !important;
-        font-weight: 600 !important;
-        transition: all 0.3s ease !important;
-    }
-    
-    .stDownloadButton button:hover {
-        background-color: #c20017 !important;
-        box-shadow: 0 4px 12px rgba(226, 0, 26, 0.3) !important;
-    }
-    
-    /* Dataframe */
-    [data-testid="stDataFrame"] {
-        border-radius: 10px;
-        overflow: hidden;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-    }
-    
-    /* Success Message */
-    .stSuccess {
-        background-color: #d4edda !important;
-        border-left: 4px solid #28a745 !important;
-        border-radius: 8px !important;
-    }
-    
-    /* Trennlinien - DEUTLICH SICHTBAR */
-    hr {
-        border: none !important;
-        height: 3px !important;
-        background: #e2001A !important;
-        margin: 2.5rem 0 !important;
-        opacity: 1 !important;
-    }
-    
-    /* Container-Padding */
-    .block-container {
-        padding-top: 2rem !important;
-        padding-bottom: 3rem !important;
-    }
-</style>
-""", unsafe_allow_html=True)
 
-# === Header ===
-st.markdown("<h1>🏥 Pflegeheim – Datenanalyse</h1>", unsafe_allow_html=True)
-
-uploaded_file = st.file_uploader(
-    "Ziehen Sie Ihre anonymisierte Excel-Datei hier hinein oder klicken Sie zum Auswählen",
-    type=["xlsx"],
-    key="file_upload_main"
-)
-
-df = None
-
-if uploaded_file:
-    try:
-        df = pd.read_excel(uploaded_file)
-        st.success("✅ Datei erfolgreich geladen und verarbeitet")
-        
-        # === Datenvorschau (5 Zeilen) ===
-        st.markdown("### 📋 Datenvorschau")
-        st.dataframe(df.head(5), use_container_width=True)
-        
-        st.markdown("---")
-        
-        # === KPI-Dashboard ===
-        st.markdown("### 📊 Kennzahlen auf einen Blick")
-        
-        col1, col2, col3, col4 = st.columns(4)
-        
-        with col1:
-            st.metric(
-                label="👥 Bewohner gesamt",
-                value=f"{len(df)}"
-            )
-        
-        with col2:
-            if "Alter" in df.columns:
-                durchschnittsalter = df["Alter"].mean()
-                st.metric(
-                    label="📅 Durchschnittsalter",
-                    value=f"{durchschnittsalter:.1f} Jahre"
-                )
-        
-        with col3:
-            if "Betreuungsbedarf" in df.columns:
-                hoher_bedarf = len(df[df["Betreuungsbedarf"] == "hoch"])
-                anteil = (hoher_bedarf / len(df) * 100) if len(df) > 0 else 0
-                st.metric(
-                    label="🔴 Hoher Betreuungsbedarf",
-                    value=f"{hoher_bedarf}",
-                    delta=f"{anteil:.1f}%"
-                )
-        
-        with col4:
-            if "Einzelzimmer" in df.columns:
-                einzelzimmer = len(df[df["Einzelzimmer"] == "Ja"])
-                anteil_ez = (einzelzimmer / len(df) * 100) if len(df) > 0 else 0
-                st.metric(
-                    label="🛏️ Einzelzimmer",
-                    value=f"{einzelzimmer}",
-                    delta=f"{anteil_ez:.1f}%"
-                )
-        
-        st.markdown("---")
-        
-        # === Visualisierungen ===
-        st.markdown("### 📈 Detaillierte Auswertungen")
-        
-        # === Altersverteilung ===
-        if "Alter" in df.columns:
-            st.markdown("#### 📊 Altersverteilung")
-            
-            df_age = df.copy()
-            bins = [70, 75, 80, 85, 90, 95, 100]
-            labels = ["70-74", "75-79", "80-84", "85-89", "90-94", "95+"]
-            df_age["Altersgruppe"] = pd.cut(df_age["Alter"], bins=bins, labels=labels, right=False)
-            
-            age_counts = df_age["Altersgruppe"].value_counts().sort_index().reset_index()
-            age_counts.columns = ["Altersgruppe", "Anzahl"]
-            
-            chart_age = (
-                alt.Chart(age_counts)
-                .mark_bar(
-                    color=BRAND_ROT,
-                    cornerRadiusTopLeft=8,
-                    cornerRadiusTopRight=8,
-                    opacity=0.95
-                )
-                .encode(
-                    x=alt.X(
-                        "Altersgruppe:N",
-                        title="Altersgruppe",
-                        axis=alt.Axis(
-                            labelAngle=0,
-                            labelFontSize=13,
-                            labelFontWeight=600,
-                            labelColor="#333333",
-                            titleFontSize=15,
-                            titleFontWeight="bold",
-                            titleColor="#333333",
-                            titlePadding=15,
-                            labelPadding=10,
-                            domainColor="#333333",
-                            domainWidth=2,
-                            tickColor="#333333",
-                            tickWidth=2
-                        )
-                    ),
-                    y=alt.Y(
-                        "Anzahl:Q",
-                        title="Anzahl Bewohner",
-                        axis=alt.Axis(
-                            tickMinStep=1,
-                            labelFontSize=13,
-                            labelFontWeight=600,
-                            labelColor="#333333",
-                            titleFontSize=15,
-                            titleFontWeight="bold",
-                            titleColor="#333333",
-                            titlePadding=15,
-                            grid=True,
-                            gridOpacity=0.5,
-                            gridColor="#cccccc",
-                            gridWidth=1,
-                            domainColor="#333333",
-                            domainWidth=2,
-                            tickColor="#333333",
-                            tickWidth=2
-                        )
-                    ),
-                    tooltip=[
-                        alt.Tooltip("Altersgruppe:N", title="Altersgruppe"),
-                        alt.Tooltip("Anzahl:Q", title="Anzahl Bewohner")
-                    ]
-                )
-                .properties(height=450)
-                .configure_view(strokeWidth=0)
-            )
-            st.altair_chart(chart_age, use_container_width=True)
-        
-        # === Zwei Charts nebeneinander ===
-        col_left, col_right = st.columns(2)
-        
-        # === Betreuungsbedarf ===
-        with col_left:
-            if "Betreuungsbedarf" in df.columns:
-                st.markdown("#### 🧠 Betreuungsbedarf")
-                
-                bedarf_counts = df["Betreuungsbedarf"].value_counts().reset_index()
-                bedarf_counts.columns = ["Betreuungsbedarf", "Anzahl"]
-                
-                chart_bedarf = (
-                    alt.Chart(bedarf_counts)
-                    .mark_bar(
-                        color=BRAND_ROT,
-                        cornerRadiusTopLeft=8,
-                        cornerRadiusTopRight=8,
-                        opacity=0.95
-                    )
-                    .encode(
-                        x=alt.X(
-                            "Betreuungsbedarf:N",
-                            title="Betreuungsbedarf",
-                            axis=alt.Axis(
-                                labelAngle=0,
-                                labelFontSize=13,
-                                labelFontWeight=600,
-                                labelColor="#333333",
-                                titleFontSize=15,
-                                titleFontWeight="bold",
-                                titleColor="#333333",
-                                titlePadding=15,
-                                labelPadding=10,
-                                domainColor="#333333",
-                                domainWidth=2,
-                                tickColor="#333333",
-                                tickWidth=2
-                            )
-                        ),
-                        y=alt.Y(
-                            "Anzahl:Q",
-                            title="Anzahl",
-                            axis=alt.Axis(
-                                tickMinStep=1,
-                                labelFontSize=13,
-                                labelFontWeight=600,
-                                labelColor="#333333",
-                                titleFontSize=15,
-                                titleFontWeight="bold",
-                                titleColor="#333333",
-                                titlePadding=15,
-                                grid=True,
-                                gridOpacity=0.5,
-                                gridColor="#cccccc",
-                                gridWidth=1,
-                                domainColor="#333333",
-                                domainWidth=2,
-                                tickColor="#333333",
-                                tickWidth=2
-                            )
-                        ),
-                        tooltip=[
-                            alt.Tooltip("Betreuungsbedarf:N", title="Betreuungsbedarf"),
-                            alt.Tooltip("Anzahl:Q", title="Anzahl")
-                        ]
-                    )
-                    .properties(height=400)
-                    .configure_view(strokeWidth=0)
-                )
-                st.altair_chart(chart_bedarf, use_container_width=True)
-        
-        # === Abteilungen ===
-        with col_right:
-            if "Abteilung" in df.columns:
-                st.markdown("#### 🏥 Abteilungen")
-                
-                abt_counts = df["Abteilung"].value_counts().reset_index()
-                abt_counts.columns = ["Abteilung", "Anzahl"]
-                
-                chart_abt = (
-                    alt.Chart(abt_counts)
-                    .mark_bar(
-                        color=BRAND_ROT,
-                        cornerRadiusTopLeft=8,
-                        cornerRadiusTopRight=8,
-                        opacity=0.95
-                    )
-                    .encode(
-                        x=alt.X(
-                            "Abteilung:N",
-                            title="Abteilung",
-                            axis=alt.Axis(
-                                labelAngle=0,
-                                labelFontSize=12,
-                                labelFontWeight=600,
-                                labelColor="#333333",
-                                titleFontSize=15,
-                                titleFontWeight="bold",
-                                titleColor="#333333",
-                                titlePadding=15,
-                                labelPadding=10,
-                                labelLimit=120,
-                                domainColor="#333333",
-                                domainWidth=2,
-                                tickColor="#333333",
-                                tickWidth=2
-                            )
-                        ),
-                        y=alt.Y(
-                            "Anzahl:Q",
-                            title="Anzahl",
-                            axis=alt.Axis(
-                                tickMinStep=1,
-                                labelFontSize=13,
-                                labelFontWeight=600,
-                                labelColor="#333333",
-                                titleFontSize=15,
-                                titleFontWeight="bold",
-                                titleColor="#333333",
-                                titlePadding=15,
-                                grid=True,
-                                gridOpacity=0.5,
-                                gridColor="#cccccc",
-                                gridWidth=1,
-                                domainColor="#333333",
-                                domainWidth=2,
-                                tickColor="#333333",
-                                tickWidth=2
-                            )
-                        ),
-                        tooltip=[
-                            alt.Tooltip("Abteilung:N", title="Abteilung"),
-                            alt.Tooltip("Anzahl:Q", title="Anzahl")
-                        ]
-                    )
-                    .properties(height=400)
-                    .configure_view(strokeWidth=0)
-                )
-                st.altair_chart(chart_abt, use_container_width=True)
-        
-        st.markdown("---")
-        
-        # === Vollständige Datentabelle ===
-        with st.expander("📋 Vollständige Datentabelle anzeigen"):
-            st.dataframe(df, use_container_width=True, height=400)
-        
-        # === Filter ===
-        st.markdown("### 🔍 Filterfunktionen")
-        
-        col_filter1, col_filter2 = st.columns([1, 3])
-        
-        with col_filter1:
-            if "Einzelzimmer" in df.columns:
-                show_einzelzimmer = st.checkbox("🛏️ Nur Einzelzimmer", key="filter_single_room")
-        
-        with col_filter2:
-            if show_einzelzimmer:
-                df_filtered = df[df["Einzelzimmer"] == "Ja"]
-                st.info(f"📊 Gefiltert: {len(df_filtered)} von {len(df)} Bewohnern in Einzelzimmern")
-                st.dataframe(df_filtered, use_container_width=True, height=300)
-        
-        st.markdown("---")
-        
-        # === Export ===
-        st.markdown("### 📥 Export")
-        
-        if df is not None and not df.empty:
-            word_bytes = build_word_report(df)
-            st.download_button(
-                label="📄 Grafikreport als Word herunterladen",
-                data=word_bytes,
-                file_name="pflegeheim_report.docx",
-                mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-                key="download_word_report",
-            )
+def _make_bar_image(series: pd.Series, title: str, xlabel: str, ylabel: str = "Anzahl") -> BytesIO:
+    """Erstellt ein Balkendiagramm im Corporate Design."""
+    counts = series.value_counts().sort_index()
     
-    except Exception as e:
-        st.error(f"❌ Fehler beim Verarbeiten der Datei: {e}")
+    fig, ax = plt.subplots(figsize=(8, 5))
+    
+    # Balken mit AWO-Rot und abgerundeten Ecken
+    bars = ax.bar(
+        counts.index.astype(str), 
+        counts.values,
+        color=BRAND_ROT,
+        alpha=0.95,
+        edgecolor='none'
+    )
+    
+    # Titel und Labels - fett und dunkel
+    ax.set_title(title, fontsize=16, fontweight='bold', color=GRAU_DUNKEL, pad=20)
+    ax.set_xlabel(xlabel, fontsize=13, fontweight='bold', color=GRAU_DUNKEL, labelpad=10)
+    ax.set_ylabel(ylabel, fontsize=13, fontweight='bold', color=GRAU_DUNKEL, labelpad=10)
+    
+    # Y-Achse: Nur ganze Zahlen
+    ax.yaxis.set_major_locator(plt.MaxNLocator(integer=True))
+    
+    # Achsen-Styling - starke Kontraste
+    ax.spines['bottom'].set_color(GRAU_DUNKEL)
+    ax.spines['bottom'].set_linewidth(2)
+    ax.spines['left'].set_color(GRAU_DUNKEL)
+    ax.spines['left'].set_linewidth(2)
+    ax.spines['top'].set_visible(False)
+    ax.spines['right'].set_visible(False)
+    
+    # Tick-Styling
+    ax.tick_params(axis='both', which='major', labelsize=11, width=2, color=GRAU_DUNKEL, labelcolor=GRAU_DUNKEL)
+    
+    # Grid mit besserer Sichtbarkeit
+    ax.yaxis.grid(True, linestyle='-', alpha=0.5, color='#cccccc', linewidth=1)
+    ax.set_axisbelow(True)
+    
+    # Werte über den Balken
+    for bar, v in zip(bars, counts.values):
+        height = bar.get_height()
+        ax.annotate(
+            f"{int(v)}",
+            xy=(bar.get_x() + bar.get_width() / 2, height),
+            xytext=(0, 5),
+            textcoords="offset points",
+            ha="center",
+            va="bottom",
+            fontsize=11,
+            fontweight='bold',
+            color=GRAU_DUNKEL
+        )
+    
+    # X-Achsen-Labels gerade
+    plt.xticks(rotation=0, ha="center")
+    
+    fig.tight_layout()
+    
+    buf = BytesIO()
+    fig.savefig(buf, format="png", dpi=200, bbox_inches="tight", facecolor='white')
+    plt.close(fig)
+    buf.seek(0)
+    
+    return buf
 
-else:
-    st.info("👆 Bitte laden Sie eine Excel-Datei hoch, um die Analyse zu starten")
+
+def _make_age_group_image(df: pd.DataFrame) -> BytesIO:
+    """Erstellt Altersgruppen-Diagramm (70-74, 75-79, etc.)."""
+    df_age = df.copy()
+    bins = [70, 75, 80, 85, 90, 95, 100]
+    labels = ["70-74", "75-79", "80-84", "85-89", "90-94", "95+"]
+    df_age["Altersgruppe"] = pd.cut(df_age["Alter"], bins=bins, labels=labels, right=False)
+    
+    # Series für _make_bar_image erstellen
+    age_series = df_age["Altersgruppe"].dropna()
+    
+    return _make_bar_image(age_series, "Altersverteilung", "Altersgruppe", "Anzahl Bewohner")
+
+
+def build_word_report(df: pd.DataFrame) -> BytesIO:
+    """Erzeugt einen Word-Report mit den Grafiken im Corporate Design."""
+    doc = Document()
+    
+    # === Titel mit Corporate Design ===
+    title = doc.add_heading("Pflegeheim – Datenanalyse", 0)
+    title_run = title.runs[0]
+    title_run.font.color.rgb = RGBColor(226, 0, 26)  # AWO-Rot
+    title_run.font.size = Pt(24)
+    title_run.font.bold = True
+    
+    # === Einleitung ===
+    intro = doc.add_paragraph(
+        "Automatisch generierter Bericht aus der hochgeladenen Excel-Datei. "
+        "Die folgenden Abbildungen zeigen die wichtigsten Verteilungen."
+    )
+    intro.alignment = WD_ALIGN_PARAGRAPH.LEFT
+    
+    doc.add_paragraph()  # Leerzeile
+    
+    # === KPI-Übersicht ===
+    doc.add_heading("📊 Kennzahlen im Überblick", level=1)
+    
+    kpi_text = f"• Bewohner gesamt: {len(df)}\n"
+    
+    if "Alter" in df.columns:
+        durchschnittsalter = df["Alter"].mean()
+        kpi_text += f"• Durchschnittsalter: {durchschnittsalter:.1f} Jahre\n"
+    
+    if "Betreuungsbedarf" in df.columns:
+        hoher_bedarf = len(df[df["Betreuungsbedarf"] == "hoch"])
+        anteil = (hoher_bedarf / len(df) * 100) if len(df) > 0 else 0
+        kpi_text += f"• Hoher Betreuungsbedarf: {hoher_bedarf} ({anteil:.1f}%)\n"
+    
+    if "Einzelzimmer" in df.columns:
+        einzelzimmer = len(df[df["Einzelzimmer"] == "Ja"])
+        anteil_ez = (einzelzimmer / len(df) * 100) if len(df) > 0 else 0
+        kpi_text += f"• Einzelzimmer: {einzelzimmer} ({anteil_ez:.1f}%)\n"
+    
+    kpi_paragraph = doc.add_paragraph(kpi_text)
+    kpi_paragraph.style = 'List Bullet'
+    
+    doc.add_page_break()
+    
+    # === Charts ===
+    doc.add_heading("📈 Detaillierte Auswertungen", level=1)
+    
+    # Altersverteilung (gruppiert)
+    if "Alter" in df.columns and not df["Alter"].empty:
+        doc.add_heading("Altersverteilung", level=2)
+        img = _make_age_group_image(df)
+        doc.add_picture(img, width=Inches(6.5))
+        doc.add_paragraph()  # Leerzeile
+    
+    # Betreuungsbedarf
+    if "Betreuungsbedarf" in df.columns and not df["Betreuungsbedarf"].empty:
+        doc.add_heading("Betreuungsbedarf", level=2)
+        img = _make_bar_image(df["Betreuungsbedarf"], "Verteilung Betreuungsbedarf", "Betreuungsbedarf", "Anzahl")
+        doc.add_picture(img, width=Inches(6.5))
+        doc.add_paragraph()  # Leerzeile
+    
+    # Abteilungen
+    if "Abteilung" in df.columns and not df["Abteilung"].empty:
+        doc.add_heading("Abteilungen", level=2)
+        img = _make_bar_image(df["Abteilung"], "Verteilung nach Abteilungen", "Abteilung", "Anzahl")
+        doc.add_picture(img, width=Inches(6.5))
+        doc.add_paragraph()  # Leerzeile
+    
+    # Speichern
+    mem = BytesIO()
+    doc.save(mem)
+    mem.seek(0)
+    
+    return mem
