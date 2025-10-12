@@ -212,7 +212,7 @@ def _analyze_abteilungen(df: pd.DataFrame) -> str:
     else:
         text += (
             f"Die Unterschiede in der Belegung sind mit einer Differenz von {diff_prozent:.1f} Prozentpunkten "
-            f"deutlich ausgeprägt. Dies sollte bei der Personalplanung berücksichtigt werden."
+            f"deutlich ausgeprägt."
         )
     
     return text
@@ -324,5 +324,6 @@ def build_word_report(df: pd.DataFrame) -> BytesIO:
     mem.seek(0)
     
     return mem
+
 
 
