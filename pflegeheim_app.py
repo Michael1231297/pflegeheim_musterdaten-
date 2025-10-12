@@ -8,8 +8,6 @@ st.set_page_config(page_title="Pflegeheim-Auswertung", layout="wide")
 
 # === AWO Corporate Design ===
 AWO_ROT = "#e2001A"
-AWO_ROT_HELL = "#ff4d5e"  # Hellere Abstufung
-AWO_GRAU = "#666666"
 
 st.title("🏥 Pflegeheim Musterdaten Analyse")
 
@@ -83,19 +81,12 @@ if uploaded_file:
             bedarf_counts = df["Betreuungsbedarf"].value_counts().reset_index()
             bedarf_counts.columns = ["Betreuungsbedarf", "Anzahl"]
             
-            # Farben nach Priorität
-            color_scale = alt.Scale(
-                domain=["hoch", "mittel", "niedrig"],
-                range=[AWO_ROT, AWO_ROT_HELL, AWO_GRAU]
-            )
-            
             chart_bedarf = (
                 alt.Chart(bedarf_counts)
-                .mark_bar(cornerRadiusTopLeft=3, cornerRadiusTopRight=3)
+                .mark_bar(color=AWO_ROT, cornerRadiusTopLeft=3, cornerRadiusTopRight=3)
                 .encode(
                     x=alt.X("Betreuungsbedarf:N", title="Betreuungsbedarf", axis=alt.Axis(labelAngle=0)),
                     y=alt.Y("Anzahl:Q", title="Anzahl Bewohner", axis=alt.Axis(tickMinStep=1)),
-                    color=alt.Color("Betreuungsbedarf:N", scale=color_scale, legend=None),
                     tooltip=[
                         alt.Tooltip("Betreuungsbedarf:N", title="Betreuungsbedarf"),
                         alt.Tooltip("Anzahl:Q", title="Anzahl")
@@ -116,7 +107,7 @@ if uploaded_file:
                 alt.Chart(abt_counts)
                 .mark_bar(color=AWO_ROT, cornerRadiusTopLeft=3, cornerRadiusTopRight=3)
                 .encode(
-                    x=alt.X("Abteilung:N", title="Abteilung", axis=alt.Axis(labelAngle=-15)),
+                    x=alt.X("Abteilung:N", title="Abteilung", axis=alt.Axis(labelAngle=0)),
                     y=alt.Y("Anzahl:Q", title="Anzahl Bewohner", axis=alt.Axis(tickMinStep=1)),
                     tooltip=[
                         alt.Tooltip("Abteilung:N", title="Abteilung"),
