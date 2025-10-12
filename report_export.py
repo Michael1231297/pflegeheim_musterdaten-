@@ -17,7 +17,7 @@ def _make_bar_image(series: pd.Series, title: str, xlabel: str, ylabel: str = "A
     
     fig, ax = plt.subplots(figsize=(8, 5))
     
-    # Balken mit AWO-Rot und abgerundeten Ecken
+    # Balken mit AWO-Rot
     bars = ax.bar(
         counts.index.astype(str), 
         counts.values,
@@ -48,21 +48,6 @@ def _make_bar_image(series: pd.Series, title: str, xlabel: str, ylabel: str = "A
     # Grid mit besserer Sichtbarkeit
     ax.yaxis.grid(True, linestyle='-', alpha=0.5, color='#cccccc', linewidth=1)
     ax.set_axisbelow(True)
-    
-    # Werte über den Balken
-    for bar, v in zip(bars, counts.values):
-        height = bar.get_height()
-        ax.annotate(
-            f"{int(v)}",
-            xy=(bar.get_x() + bar.get_width() / 2, height),
-            xytext=(0, 5),
-            textcoords="offset points",
-            ha="center",
-            va="bottom",
-            fontsize=11,
-            fontweight='bold',
-            color=GRAU_DUNKEL
-        )
     
     # X-Achsen-Labels gerade
     plt.xticks(rotation=0, ha="center")
@@ -132,7 +117,7 @@ def build_word_report(df: pd.DataFrame) -> BytesIO:
     kpi_paragraph = doc.add_paragraph(kpi_text)
     kpi_paragraph.style = 'List Bullet'
     
-    doc.add_page_break()
+    doc.add_paragraph()  # Leerzeile
     
     # === Charts ===
     doc.add_heading("📈 Detaillierte Auswertungen", level=1)
