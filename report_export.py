@@ -10,6 +10,9 @@ import numpy as np
 BRAND_ROT = "#e2001A"
 GRAU_DUNKEL = "#333333"
 
+# === Diagramm-Einstellungen (hier kannst du die Größe anpassen) ===
+DIAGRAMM_BREITE_INCHES = 5.0  # Breite der Diagramme in Inches (Standard: 5.0)
+
 
 def _make_bar_image(series: pd.Series, title: str, xlabel: str, ylabel: str = "Anzahl") -> BytesIO:
     """Erstellt ein Balkendiagramm im Corporate Design."""
@@ -278,9 +281,9 @@ def build_word_report(df: pd.DataFrame) -> BytesIO:
         doc.add_paragraph(analyse_text)
         doc.add_paragraph()  # Leerzeile
         
-        # Diagramm (kleiner)
+        # Diagramm
         img = _make_age_group_image(df)
-        doc.add_picture(img, width=Inches(5.0))
+        doc.add_picture(img, width=Inches(DIAGRAMM_BREITE_INCHES))
         doc.add_paragraph()  # Leerzeile
     
     # Betreuungsbedarf
@@ -294,9 +297,9 @@ def build_word_report(df: pd.DataFrame) -> BytesIO:
         doc.add_paragraph(analyse_text)
         doc.add_paragraph()  # Leerzeile
         
-        # Diagramm (kleiner)
+        # Diagramm
         img = _make_bar_image(df["Betreuungsbedarf"], "Verteilung Betreuungsbedarf", "Betreuungsbedarf", "Anzahl")
-        doc.add_picture(img, width=Inches(5.0))
+        doc.add_picture(img, width=Inches(DIAGRAMM_BREITE_INCHES))
         doc.add_paragraph()  # Leerzeile
     
     # Abteilungen
@@ -310,9 +313,9 @@ def build_word_report(df: pd.DataFrame) -> BytesIO:
         doc.add_paragraph(analyse_text)
         doc.add_paragraph()  # Leerzeile
         
-        # Diagramm (kleiner)
+        # Diagramm
         img = _make_bar_image(df["Abteilung"], "Verteilung nach Abteilungen", "Abteilung", "Anzahl")
-        doc.add_picture(img, width=Inches(5.0))
+        doc.add_picture(img, width=Inches(DIAGRAMM_BREITE_INCHES))
         doc.add_paragraph()  # Leerzeile
     
     # Speichern
