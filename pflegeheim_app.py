@@ -5,15 +5,15 @@ from report_export import build_word_report
 
 # === Konfiguration ===
 st.set_page_config(
-    page_title="AWO Pflegeheim-Auswertung",
+    page_title="Pflegeheim-Auswertung",
     layout="wide",
     initial_sidebar_state="collapsed"
 )
 
-# === AWO Corporate Design ===
-AWO_ROT = "#e2001A"
-AWO_GRAU_DUNKEL = "#333333"
-AWO_GRAU_HELL = "#f5f5f5"
+# === Corporate Design ===
+BRAND_ROT = "#e2001A"
+GRAU_DUNKEL = "#333333"
+GRAU_HELL = "#f5f5f5"
 
 # === Custom CSS für Premium-Look ===
 st.markdown("""
@@ -103,7 +103,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # === Header ===
-st.markdown("<h1>🏥 AWO Pflegeheim – Datenanalyse</h1>", unsafe_allow_html=True)
+st.markdown("<h1>🏥 Pflegeheim – Datenanalyse</h1>", unsafe_allow_html=True)
 
 uploaded_file = st.file_uploader(
     "Ziehen Sie Ihre anonymisierte Excel-Datei hier hinein oder klicken Sie zum Auswählen",
@@ -117,6 +117,12 @@ if uploaded_file:
     try:
         df = pd.read_excel(uploaded_file)
         st.success("✅ Datei erfolgreich geladen und verarbeitet")
+        
+        # === Datenvorschau (5 Zeilen) ===
+        st.markdown("### 📋 Datenvorschau")
+        st.dataframe(df.head(5), use_container_width=True)
+        
+        st.markdown("---")
         
         # === KPI-Dashboard ===
         st.markdown("### 📊 Kennzahlen auf einen Blick")
@@ -177,7 +183,7 @@ if uploaded_file:
             chart_age = (
                 alt.Chart(age_counts)
                 .mark_bar(
-                    color=AWO_ROT,
+                    color=BRAND_ROT,
                     cornerRadiusTopLeft=8,
                     cornerRadiusTopRight=8,
                     opacity=0.9
@@ -230,7 +236,7 @@ if uploaded_file:
                 chart_bedarf = (
                     alt.Chart(bedarf_counts)
                     .mark_bar(
-                        color=AWO_ROT,
+                        color=BRAND_ROT,
                         cornerRadiusTopLeft=8,
                         cornerRadiusTopRight=8,
                         opacity=0.9
@@ -280,7 +286,7 @@ if uploaded_file:
                 chart_abt = (
                     alt.Chart(abt_counts)
                     .mark_bar(
-                        color=AWO_ROT,
+                        color=BRAND_ROT,
                         cornerRadiusTopLeft=8,
                         cornerRadiusTopRight=8,
                         opacity=0.9
@@ -322,7 +328,7 @@ if uploaded_file:
         
         st.markdown("---")
         
-        # === Datenvorschau ===
+        # === Vollständige Datentabelle ===
         with st.expander("📋 Vollständige Datentabelle anzeigen"):
             st.dataframe(df, use_container_width=True, height=400)
         
@@ -351,7 +357,7 @@ if uploaded_file:
             st.download_button(
                 label="📄 Grafikreport als Word herunterladen",
                 data=word_bytes,
-                file_name="awo_pflegeheim_report.docx",
+                file_name="pflegeheim_report.docx",
                 mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
                 key="download_word_report",
             )
