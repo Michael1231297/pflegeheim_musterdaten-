@@ -237,7 +237,9 @@ def build_word_report(df: pd.DataFrame) -> BytesIO:
     doc.add_paragraph()  # Leerzeile
     
     # === KPI-Übersicht ===
-    doc.add_heading("📊 Kennzahlen im Überblick", level=1)
+    heading_kpi = doc.add_heading("📊 Kennzahlen im Überblick", level=1)
+    for run in heading_kpi.runs:
+        run.font.color.rgb = RGBColor(226, 0, 26)
     
     kpi_lines = [f"Bewohner gesamt: {len(df)}"]
     
@@ -261,48 +263,56 @@ def build_word_report(df: pd.DataFrame) -> BytesIO:
     doc.add_paragraph()  # Leerzeile
     
     # === Charts ===
-    doc.add_heading("📈 Detaillierte Auswertungen", level=1)
+    heading_charts = doc.add_heading("📈 Detaillierte Auswertungen", level=1)
+    for run in heading_charts.runs:
+        run.font.color.rgb = RGBColor(226, 0, 26)
     
     # Altersverteilung (gruppiert)
     if "Alter" in df.columns and not df["Alter"].empty:
-        doc.add_heading("Altersverteilung", level=2)
+        heading_age = doc.add_heading("Altersverteilung", level=2)
+        for run in heading_age.runs:
+            run.font.color.rgb = RGBColor(226, 0, 26)
         
         # Analyse-Text
         analyse_text = _analyze_age_distribution(df)
         doc.add_paragraph(analyse_text)
         doc.add_paragraph()  # Leerzeile
         
-        # Diagramm
+        # Diagramm (kleiner)
         img = _make_age_group_image(df)
-        doc.add_picture(img, width=Inches(6.5))
+        doc.add_picture(img, width=Inches(5.0))
         doc.add_paragraph()  # Leerzeile
     
     # Betreuungsbedarf
     if "Betreuungsbedarf" in df.columns and not df["Betreuungsbedarf"].empty:
-        doc.add_heading("Betreuungsbedarf", level=2)
+        heading_bedarf = doc.add_heading("Betreuungsbedarf", level=2)
+        for run in heading_bedarf.runs:
+            run.font.color.rgb = RGBColor(226, 0, 26)
         
         # Analyse-Text
         analyse_text = _analyze_betreuungsbedarf(df)
         doc.add_paragraph(analyse_text)
         doc.add_paragraph()  # Leerzeile
         
-        # Diagramm
+        # Diagramm (kleiner)
         img = _make_bar_image(df["Betreuungsbedarf"], "Verteilung Betreuungsbedarf", "Betreuungsbedarf", "Anzahl")
-        doc.add_picture(img, width=Inches(6.5))
+        doc.add_picture(img, width=Inches(5.0))
         doc.add_paragraph()  # Leerzeile
     
     # Abteilungen
     if "Abteilung" in df.columns and not df["Abteilung"].empty:
-        doc.add_heading("Abteilungen", level=2)
+        heading_abt = doc.add_heading("Abteilungen", level=2)
+        for run in heading_abt.runs:
+            run.font.color.rgb = RGBColor(226, 0, 26)
         
         # Analyse-Text
         analyse_text = _analyze_abteilungen(df)
         doc.add_paragraph(analyse_text)
         doc.add_paragraph()  # Leerzeile
         
-        # Diagramm
+        # Diagramm (kleiner)
         img = _make_bar_image(df["Abteilung"], "Verteilung nach Abteilungen", "Abteilung", "Anzahl")
-        doc.add_picture(img, width=Inches(6.5))
+        doc.add_picture(img, width=Inches(5.0))
         doc.add_paragraph()  # Leerzeile
     
     # Speichern
