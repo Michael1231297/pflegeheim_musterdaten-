@@ -13,6 +13,7 @@ st.set_page_config(
 # === Corporate Design ===
 BRAND_ROT = "#e2001A"
 GRAU_DUNKEL = "#333333"
+GRAU_MITTEL = "#666666"
 GRAU_HELL = "#f5f5f5"
 
 # === Custom CSS für Premium-Look ===
@@ -23,7 +24,7 @@ st.markdown("""
         color: #e2001A !important;
         font-weight: 700 !important;
         padding-bottom: 1rem !important;
-        border-bottom: 3px solid #e2001A !important;
+        border-bottom: 4px solid #e2001A !important;
         margin-bottom: 2rem !important;
     }
     
@@ -45,7 +46,7 @@ st.markdown("""
     [data-testid="stMetricLabel"] {
         font-size: 1rem !important;
         font-weight: 500 !important;
-        color: #666666 !important;
+        color: #333333 !important;
     }
     
     /* File Uploader */
@@ -86,12 +87,13 @@ st.markdown("""
         border-radius: 8px !important;
     }
     
-    /* Trennlinien */
+    /* Trennlinien - DEUTLICH SICHTBAR */
     hr {
-        border: none;
-        height: 2px;
-        background: linear-gradient(to right, #e2001A, transparent);
-        margin: 2rem 0;
+        border: none !important;
+        height: 3px !important;
+        background: #e2001A !important;
+        margin: 2.5rem 0 !important;
+        opacity: 1 !important;
     }
     
     /* Container-Padding */
@@ -186,7 +188,7 @@ if uploaded_file:
                     color=BRAND_ROT,
                     cornerRadiusTopLeft=8,
                     cornerRadiusTopRight=8,
-                    opacity=0.9
+                    opacity=0.95
                 )
                 .encode(
                     x=alt.X(
@@ -194,10 +196,18 @@ if uploaded_file:
                         title="Altersgruppe",
                         axis=alt.Axis(
                             labelAngle=0,
-                            labelFontSize=12,
-                            titleFontSize=14,
+                            labelFontSize=13,
+                            labelFontWeight=600,
+                            labelColor="#333333",
+                            titleFontSize=15,
+                            titleFontWeight="bold",
+                            titleColor="#333333",
                             titlePadding=15,
-                            labelPadding=10
+                            labelPadding=10,
+                            domainColor="#333333",
+                            domainWidth=2,
+                            tickColor="#333333",
+                            tickWidth=2
                         )
                     ),
                     y=alt.Y(
@@ -205,11 +215,21 @@ if uploaded_file:
                         title="Anzahl Bewohner",
                         axis=alt.Axis(
                             tickMinStep=1,
-                            labelFontSize=12,
-                            titleFontSize=14,
+                            labelFontSize=13,
+                            labelFontWeight=600,
+                            labelColor="#333333",
+                            titleFontSize=15,
+                            titleFontWeight="bold",
+                            titleColor="#333333",
                             titlePadding=15,
                             grid=True,
-                            gridOpacity=0.3
+                            gridOpacity=0.5,
+                            gridColor="#cccccc",
+                            gridWidth=1,
+                            domainColor="#333333",
+                            domainWidth=2,
+                            tickColor="#333333",
+                            tickWidth=2
                         )
                     ),
                     tooltip=[
@@ -239,7 +259,7 @@ if uploaded_file:
                         color=BRAND_ROT,
                         cornerRadiusTopLeft=8,
                         cornerRadiusTopRight=8,
-                        opacity=0.9
+                        opacity=0.95
                     )
                     .encode(
                         x=alt.X(
@@ -247,10 +267,18 @@ if uploaded_file:
                             title="Betreuungsbedarf",
                             axis=alt.Axis(
                                 labelAngle=0,
-                                labelFontSize=12,
-                                titleFontSize=14,
+                                labelFontSize=13,
+                                labelFontWeight=600,
+                                labelColor="#333333",
+                                titleFontSize=15,
+                                titleFontWeight="bold",
+                                titleColor="#333333",
                                 titlePadding=15,
-                                labelPadding=10
+                                labelPadding=10,
+                                domainColor="#333333",
+                                domainWidth=2,
+                                tickColor="#333333",
+                                tickWidth=2
                             )
                         ),
                         y=alt.Y(
@@ -258,11 +286,21 @@ if uploaded_file:
                             title="Anzahl",
                             axis=alt.Axis(
                                 tickMinStep=1,
-                                labelFontSize=12,
-                                titleFontSize=14,
+                                labelFontSize=13,
+                                labelFontWeight=600,
+                                labelColor="#333333",
+                                titleFontSize=15,
+                                titleFontWeight="bold",
+                                titleColor="#333333",
                                 titlePadding=15,
                                 grid=True,
-                                gridOpacity=0.3
+                                gridOpacity=0.5,
+                                gridColor="#cccccc",
+                                gridWidth=1,
+                                domainColor="#333333",
+                                domainWidth=2,
+                                tickColor="#333333",
+                                tickWidth=2
                             )
                         ),
                         tooltip=[
@@ -289,7 +327,7 @@ if uploaded_file:
                         color=BRAND_ROT,
                         cornerRadiusTopLeft=8,
                         cornerRadiusTopRight=8,
-                        opacity=0.9
+                        opacity=0.95
                     )
                     .encode(
                         x=alt.X(
@@ -297,11 +335,19 @@ if uploaded_file:
                             title="Abteilung",
                             axis=alt.Axis(
                                 labelAngle=0,
-                                labelFontSize=11,
-                                titleFontSize=14,
+                                labelFontSize=12,
+                                labelFontWeight=600,
+                                labelColor="#333333",
+                                titleFontSize=15,
+                                titleFontWeight="bold",
+                                titleColor="#333333",
                                 titlePadding=15,
                                 labelPadding=10,
-                                labelLimit=120
+                                labelLimit=120,
+                                domainColor="#333333",
+                                domainWidth=2,
+                                tickColor="#333333",
+                                tickWidth=2
                             )
                         ),
                         y=alt.Y(
@@ -309,11 +355,21 @@ if uploaded_file:
                             title="Anzahl",
                             axis=alt.Axis(
                                 tickMinStep=1,
-                                labelFontSize=12,
-                                titleFontSize=14,
+                                labelFontSize=13,
+                                labelFontWeight=600,
+                                labelColor="#333333",
+                                titleFontSize=15,
+                                titleFontWeight="bold",
+                                titleColor="#333333",
                                 titlePadding=15,
                                 grid=True,
-                                gridOpacity=0.3
+                                gridOpacity=0.5,
+                                gridColor="#cccccc",
+                                gridWidth=1,
+                                domainColor="#333333",
+                                domainWidth=2,
+                                tickColor="#333333",
+                                tickWidth=2
                             )
                         ),
                         tooltip=[
